@@ -1,4 +1,4 @@
-package com.taller.ii;
+package com.taller.ii.tareas;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

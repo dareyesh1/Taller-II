@@ -1,9 +1,8 @@
 
-package com.taller.ii;
+package com.taller.ii.clases;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.imageio.ImageIO;

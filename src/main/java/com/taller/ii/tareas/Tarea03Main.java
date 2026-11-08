@@ -1,4 +1,4 @@
-package com.taller.ii;
+package com.taller.ii.tareas;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -8,7 +8,7 @@ public class Tarea03Main {
 
     private static final String imagenOriginal = "src/main/resources/img/m4.jpg";
 
-    private static final String destino = "src/main/resources/img/Recolor";
+        private static final String destino = "src/main/resources/img/Recolor";
 
     private static final int ORIGINAL = 0;
     private static final int GRIS = 1;

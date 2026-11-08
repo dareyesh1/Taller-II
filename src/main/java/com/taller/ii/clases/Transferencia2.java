@@ -1,4 +1,4 @@
-package com.taller.ii;
+package com.taller.ii.clases;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
