@@ -1,146 +1,201 @@
 package com.taller.ii.tareas;
 
-import javax.imageio.ImageIO;
+import com.taller.ii.util.ImagenUtils;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 public class Tarea03Main {
 
-    private static final String imagenOriginal = "src/main/resources/img/m4.jpg";
+    private static final String RUTA_ENTRADA =
+            "src/main/resources/img/m4.jpg";
 
-        private static final String destino = "src/main/resources/img/Recolor";
-
-    private static final int ORIGINAL = 0;
-    private static final int GRIS = 1;
-    private static final int SEPIA = 2;
-    private static final int ACLARADO = 3;
-    private static final int BLANCO_NEGRO_1 = 4;
-    private static final int BLANCO_NEGRO_2 = 5;
-    private static final int BLANCO_NEGRO_3 = 6;
-    private static final int GRIS_OSCURO = 7;
-    private static final int AZUL_OSCURO = 8;
-    private static final int NARANJA_OSCURO = 9;
-    private static final int GRIS_MEDIO = 10;
-    private static final int AMARILLO_OSCURO = 11;
-    private static final int AZUL = 12;
-    private static final int VERDE = 13;
-    private static final int GRIS_CLARO_1 = 14;
-    private static final int AZUL_CLARO_1 = 15;
-    private static final int NARANJA_CLARO = 16;
-    private static final int GRIS_CLARO_2 = 17;
-    private static final int AMARILLO_CLARO = 18;
-    private static final int AZUL_CLARO_2 = 19;
-    private static final int VERDE_CLARO = 20;
-
-    private static final String[] NOMBRES = {
-
-            "01_Original",
-            "02_EscalaGrises",
-            "03_Sepia",
-            "04_Aclarado",
-            "05_BlancoNegro1",
-            "06_BlancoNegro2",
-            "07_BlancoNegro3",
-
-            "08_GrisOscuro",
-            "09_AzulOscuro",
-            "10_NaranjaOscuro",
-            "11_GrisMedio",
-            "12_AmarilloOscuro",
-            "13_Azul",
-            "14_Verde",
-
-            "15_GrisClaro1",
-            "16_AzulClaro1",
-            "17_NaranjaClaro",
-            "18_GrisClaro2",
-            "19_AmarilloClaro",
-            "20_AzulClaro2",
-            "21_VerdeClaro"
-    };
-
-    public static void main(String[] args) {
-        File original = new File(imagenOriginal);
-
-        File carpetaSalida = new File(destino);
-
-        try{
-
-            BufferedImage imagen = ImageIO.read(original);
-
-            int ancho = imagen.getWidth();
-            int alto = imagen.getHeight();
-
-            BufferedImage imagen2 = new BufferedImage(
-                    ancho, alto, BufferedImage.TYPE_INT_RGB
-            );
-
-            for(int filtro =0; filtro<NOMBRES.length; filtro++){
-
-                aplicarFiltro(imagen, imagen2, filtro);
-
-                String nombreArchivo = NOMBRES[filtro] + ".jpg";
-
-                File destino = new File(carpetaSalida, nombreArchivo);
-
-                ImageIO.write(imagen2, "jpg", destino);
-            }
+    private static final String CARPETA_SALIDA =
+            "src/main/resources/img/Recolor";
 
 
-        }catch (Exception e){
-            System.out.println(e.getMessage());
+    public enum FiltroRecolor {
+
+        ORIGINAL(0, "Original"),
+        GRIS(1, "Escala de grises"),
+        SEPIA(2, "Sepia"),
+        ACLARADO(3, "Aclarado"),
+
+        BLANCO_NEGRO_1(4, "Blanco y negro 1"),
+        BLANCO_NEGRO_2(5, "Blanco y negro 2"),
+        BLANCO_NEGRO_3(6, "Blanco y negro 3"),
+
+        GRIS_OSCURO(7, "Gris oscuro"),
+        AZUL_OSCURO(8, "Azul oscuro"),
+        NARANJA_OSCURO(9, "Naranja oscuro"),
+        GRIS_MEDIO(10, "Gris medio"),
+        AMARILLO_OSCURO(11, "Amarillo oscuro"),
+
+        AZUL(12, "Azul"),
+        VERDE(13, "Verde"),
+
+        GRIS_CLARO_1(14, "Gris claro 1"),
+        AZUL_CLARO_1(15, "Azul claro 1"),
+        NARANJA_CLARO(16, "Naranja claro"),
+        GRIS_CLARO_2(17, "Gris claro 2"),
+        AMARILLO_CLARO(18, "Amarillo claro"),
+        AZUL_CLARO_2(19, "Azul claro 2"),
+        VERDE_CLARO(20, "Verde claro");
+
+        private final int codigo;
+        private final String nombreVisible;
+
+        FiltroRecolor(
+                int codigo,
+                String nombreVisible
+        ) {
+
+            this.codigo = codigo;
+            this.nombreVisible = nombreVisible;
+        }
+
+        public int getCodigo() {
+            return codigo;
+        }
+
+        public String getNombreVisible() {
+            return nombreVisible;
+        }
+
+        @Override
+        public String toString() {
+            return codigo + " - " + nombreVisible;
         }
     }
 
-    private static void aplicarFiltro(
-            BufferedImage original, BufferedImage destino, int tipoFiltro
-    ){
 
-        int ancho = original.getWidth();
-        int alto = original.getHeight();
+    public static BufferedImage aplicarFiltro(
+            BufferedImage original,
+            FiltroRecolor filtro
+    ) {
 
-        for(int x =0; x<ancho; x++){
-            for (int y=0; y<alto; y++){
-                int pixel = original.getRGB(x,y);
+        if (original == null || filtro == null) {
+            throw new IllegalArgumentException(
+                    "La imagen y el filtro son obligatorios."
+            );
+        }
 
-                //Extraemos los componentes
+        BufferedImage resultado = new BufferedImage(
+                original.getWidth(),
+                original.getHeight(),
+                BufferedImage.TYPE_INT_RGB
+        );
+
+        for (int y = 0; y < original.getHeight(); y++) {
+
+            for (int x = 0; x < original.getWidth(); x++) {
+
+                int pixel = original.getRGB(x, y);
+
                 int r = (pixel >> 16) & 0xFF;
                 int g = (pixel >> 8) & 0xFF;
-                int b = (pixel) & 0xFF;
+                int b = pixel & 0xFF;
 
-                int pixel2 = transformarPixel(
-                        r,g,b, tipoFiltro
+                int nuevoPixel = transformarPixel(
+                        r,
+                        g,
+                        b,
+                        filtro.codigo
                 );
 
-
-                destino.setRGB(x,y, pixel2);
+                resultado.setRGB(
+                        x,
+                        y,
+                        nuevoPixel
+                );
             }
-
         }
 
+        return resultado;
     }
 
-    public static int transformarPixel(int r, int g, int b, int tipoFiltro){
+    public static BufferedImage aplicarFiltro(
+            BufferedImage original,
+            int codigoFiltro
+    ) {
+
+        FiltroRecolor filtro = obtenerFiltro(codigoFiltro);
+
+        return aplicarFiltro(
+                original,
+                filtro
+        );
+    }
+
+
+    public static FiltroRecolor obtenerFiltro(
+            int codigo
+    ) {
+
+        for (FiltroRecolor filtro :
+                FiltroRecolor.values()) {
+
+            if (filtro.codigo == codigo) {
+                return filtro;
+            }
+        }
+
+        throw new IllegalArgumentException(
+                "Código de filtro inválido: " + codigo
+        );
+    }
+
+
+    public static String[] obtenerNombresFiltros() {
+
+        FiltroRecolor[] filtros =
+                FiltroRecolor.values();
+
+        String[] nombres = new String[filtros.length];
+
+        for (int i = 0; i < filtros.length; i++) {
+            nombres[i] = filtros[i].toString();
+        }
+
+        return nombres;
+    }
+
+
+    public static int transformarPixel(
+            int r,
+            int g,
+            int b,
+            int tipoFiltro
+    ) {
+
+        FiltroRecolor filtro =
+                obtenerFiltro(tipoFiltro);
+
         int gris = calcularGris(r, g, b);
 
         int r2 = r;
-        int g2= g;
+        int g2 = g;
         int b2 = b;
 
-        switch (tipoFiltro){
+        switch (filtro) {
+
             case ORIGINAL:
+
                 r2 = r;
                 g2 = g;
                 b2 = b;
+
                 break;
 
             case GRIS:
-                r2 = gris;
-                g2 = gris;
-                b2 = gris;
+
+                r2 = g2 = b2 = gris;
+
                 break;
 
             case SEPIA:
+
                 r2 = (int) (gris * 1.07);
                 g2 = gris;
                 b2 = (int) (gris * 0.80);
@@ -148,12 +203,12 @@ public class Tarea03Main {
                 break;
 
             case ACLARADO:
+
                 r2 = aclarar(r);
                 g2 = aclarar(g);
                 b2 = aclarar(b);
 
                 break;
-
 
             case BLANCO_NEGRO_1:
 
@@ -161,21 +216,17 @@ public class Tarea03Main {
 
                 break;
 
-
-
             case BLANCO_NEGRO_2:
 
                 r2 = g2 = b2 = umbral(gris, 170);
 
                 break;
 
-
             case BLANCO_NEGRO_3:
 
                 r2 = g2 = b2 = umbral(gris, 90);
 
                 break;
-
 
             case GRIS_OSCURO:
 
@@ -185,8 +236,6 @@ public class Tarea03Main {
 
                 break;
 
-
-
             case AZUL_OSCURO:
 
                 r2 = (int) (gris * 0.30);
@@ -194,7 +243,6 @@ public class Tarea03Main {
                 b2 = (int) (gris * 0.90);
 
                 break;
-
 
             case NARANJA_OSCURO:
 
@@ -204,8 +252,6 @@ public class Tarea03Main {
 
                 break;
 
-
-
             case GRIS_MEDIO:
 
                 gris = oscurecer(gris, 0.75);
@@ -213,8 +259,6 @@ public class Tarea03Main {
                 r2 = g2 = b2 = gris;
 
                 break;
-
-
 
             case AMARILLO_OSCURO:
 
@@ -224,8 +268,6 @@ public class Tarea03Main {
 
                 break;
 
-
-
             case AZUL:
 
                 r2 = (int) (gris * 0.45);
@@ -233,8 +275,6 @@ public class Tarea03Main {
                 b2 = gris;
 
                 break;
-
-
 
             case VERDE:
 
@@ -244,17 +284,13 @@ public class Tarea03Main {
 
                 break;
 
-
-
             case GRIS_CLARO_1:
 
-                gris = aclarar(gris);
+                gris = aclararPorcentaje(gris, 0.40);
 
                 r2 = g2 = b2 = gris;
 
                 break;
-
-
 
             case AZUL_CLARO_1:
 
@@ -264,8 +300,6 @@ public class Tarea03Main {
 
                 break;
 
-
-
             case NARANJA_CLARO:
 
                 r2 = aclarar(gris);
@@ -274,17 +308,13 @@ public class Tarea03Main {
 
                 break;
 
-
-
             case GRIS_CLARO_2:
 
-                gris = aclarar(gris);
+                gris = aclararPorcentaje(gris, 0.65);
 
                 r2 = g2 = b2 = gris;
 
                 break;
-
-
 
             case AMARILLO_CLARO:
 
@@ -294,8 +324,6 @@ public class Tarea03Main {
 
                 break;
 
-
-
             case AZUL_CLARO_2:
 
                 r2 = (int) (gris * 0.70);
@@ -304,8 +332,6 @@ public class Tarea03Main {
 
                 break;
 
-
-            // 21. Verde claro
             case VERDE_CLARO:
 
                 r2 = (int) (gris * 0.65);
@@ -315,16 +341,14 @@ public class Tarea03Main {
                 break;
         }
 
-        // Limitar componentes RGB
         r2 = limitar(r2);
         g2 = limitar(g2);
         b2 = limitar(b2);
 
-        // Reconstruir píxel utilizando desplazamientos de bits
-        return (r2 << 16) | (g2 << 8) | b2;
+        return (r2 << 16)
+                | (g2 << 8)
+                | b2;
     }
-
-
 
     private static int calcularGris(
             int r,
@@ -332,38 +356,44 @@ public class Tarea03Main {
             int b
     ) {
 
-        return (int) Math.round(
-                r * 0.299
-                        + g * 0.587
-                        + b * 0.114
+        return limitar(
+                (int) Math.round(
+                        r * 0.299
+                                + g * 0.587
+                                + b * 0.114
+                )
         );
     }
-
 
 
     private static int aclarar(int valor) {
 
-        return (int) Math.round(
-                valor + (255 - valor) * 0.65
-        );
+        return aclararPorcentaje(valor, 0.65);
     }
 
+    private static int aclararPorcentaje(
+            int valor,
+            double porcentaje
+    ) {
 
+        return limitar(
+                (int) Math.round(
+                        valor
+                                + (255 - valor) * porcentaje
+                )
+        );
+    }
 
     private static int oscurecer(
             int valor,
             double factor
     ) {
 
-        return (int) Math.round(
-                valor * factor
+        return limitar(
+                (int) Math.round(valor * factor)
         );
     }
 
-
-    /*
-     * Genera blanco o negro según un umbral.
-     */
     private static int umbral(
             int gris,
             int limite
@@ -372,9 +402,6 @@ public class Tarea03Main {
         return gris >= limite ? 255 : 0;
     }
 
-
-
-    //Limita que no se salgan de 255
     private static int limitar(int valor) {
 
         return Math.max(
@@ -383,4 +410,64 @@ public class Tarea03Main {
         );
     }
 
+    public static void generarTodas()
+            throws IOException {
+
+        BufferedImage original =
+                ImagenUtils.cargarImagen(RUTA_ENTRADA);
+
+        File carpeta = new File(CARPETA_SALIDA);
+
+        if (!carpeta.exists() && !carpeta.mkdirs()) {
+            throw new IOException(
+                    "No se pudo crear la carpeta Recolor."
+            );
+        }
+
+        for (FiltroRecolor filtro :
+                FiltroRecolor.values()) {
+
+            BufferedImage resultado =
+                    aplicarFiltro(original, filtro);
+
+            String nombreArchivo =
+                    String.format(
+                            "%02d_%s.jpg",
+                            filtro.codigo + 1,
+                            filtro.name()
+                    );
+
+            File destino =
+                    new File(carpeta, nombreArchivo);
+
+            ImagenUtils.guardarImagen(
+                    resultado,
+                    destino.getAbsolutePath()
+            );
+
+            System.out.println(
+                    "Filtro generado: "
+                            + filtro.nombreVisible
+            );
+        }
+    }
+
+    public static void main(String[] args) {
+
+        try {
+
+            generarTodas();
+
+            System.out.println(
+                    "Los 21 filtros Recolor fueron generados."
+            );
+
+        } catch (IOException e) {
+
+            System.err.println(
+                    "Error al generar Recolor: "
+                            + e.getMessage()
+            );
+        }
+    }
 }

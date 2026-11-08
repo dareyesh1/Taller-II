@@ -1,54 +1,92 @@
 package com.taller.ii.tareas;
 
-import javax.imageio.ImageIO;
+import com.taller.ii.util.ImagenUtils;
+
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.IOException;
 
 public class ImagenGrisAColor {
+
+    private static final String RUTA_ENTRADA =
+            "src/main/resources/img/gris_256.png";
+
+    private static final String RUTA_SALIDA =
+            "src/main/resources/img/imagen_coloreada.png";
+
+
+    public static BufferedImage colorear(
+            BufferedImage original
+    ) {
+
+        if (original == null) {
+            throw new IllegalArgumentException(
+                    "La imagen no puede ser null."
+            );
+        }
+
+        int ancho = original.getWidth();
+        int alto = original.getHeight();
+
+        BufferedImage resultado = new BufferedImage(
+                ancho,
+                alto,
+                BufferedImage.TYPE_INT_RGB
+        );
+
+        for (int y = 0; y < alto; y++) {
+
+            for (int x = 0; x < ancho; x++) {
+
+                int pixel = original.getRGB(x, y);
+
+                int gris = pixel & 0xFF;
+
+                int r = gris / 8;
+                int g = gris / 4;
+                int b = gris;
+
+                int pixelColor =
+                        ImagenUtils.empaquetarRGB(
+                                r,
+                                g,
+                                b
+                        );
+
+                resultado.setRGB(
+                        x,
+                        y,
+                        pixelColor
+                );
+            }
+        }
+
+        return resultado;
+    }
+
     public static void main(String[] args) {
-
-        File imagenOriginal = new File("src/main/resources/img/gris_256.png");
-
-        File imagenColor = new File("src/main/resources/img/imagen_coloreada.png");
-
-
-        int mascara = 0xFF;
 
         try {
 
-            BufferedImage imagen = ImageIO.read(imagenOriginal);
+            BufferedImage original =
+                    ImagenUtils.cargarImagen(RUTA_ENTRADA);
 
-            int ancho = imagen.getWidth();
-            int alto = imagen.getHeight();
+            BufferedImage resultado =
+                    colorear(original);
 
-            BufferedImage imagenSalida = new BufferedImage(
-                    ancho, alto, BufferedImage.TYPE_INT_RGB
+            ImagenUtils.guardarImagen(
+                    resultado,
+                    RUTA_SALIDA
             );
 
-            for(int x =0; x<ancho; x++){
-                for (int y =0; y<alto; y++){
-                    int pixel = imagen.getRGB(x,y);
+            System.out.println(
+                    "Imagen pseudocoloreada correctamente."
+            );
 
-                    int gris = pixel & mascara;
+        } catch (IOException e) {
 
-                    int r = gris/8;
-                    int g = gris /4;
-                    int b = gris;
-
-                    int pixel2 = (r<<16) | (g<<8) | b;
-
-                    imagenSalida.setRGB(x,y, pixel2);
-                }
-            }
-
-            ImageIO.write(imagenSalida, "png", imagenColor);
-
-
-
-
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.err.println(
+                    "Error al colorear: " + e.getMessage()
+            );
         }
     }
 }

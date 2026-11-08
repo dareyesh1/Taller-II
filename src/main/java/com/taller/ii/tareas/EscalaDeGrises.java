@@ -1,69 +1,130 @@
 package com.taller.ii.tareas;
 
-import javax.imageio.ImageIO;
+import com.taller.ii.util.ImagenUtils;
+
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.IOException;
 
 public class EscalaDeGrises {
-    public static void main(String[] args)  {
 
-        File imagenOriginal= new File("src/main/resources/img/m4.jpg"); //Entrada
-        int[] niveles = {256, 128, 64, 32, 16, 2};
-        //File imageClon= new File("img/ClonLinuxGris.jpg");//Resultado
-        int mascara=0xFF; //0x(Hexadecimal) y el valor de la mascara
-        try {
-            BufferedImage imagen= ImageIO.read(imagenOriginal);
-            int ancho= imagen.getWidth();
-            int alto= imagen.getHeight();
+    private static final String RUTA_ENTRADA =
+            "src/main/resources/img/m4.jpg";
 
-            //BufferedImage imagen2 =new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+    private static final int[] NIVELES = {
+            256, 128, 64, 32, 16, 2
+    };
 
-            BufferedImage[] imagenes = new BufferedImage[niveles.length];
-            for(int i =0; i< niveles.length; i++){
-                imagenes[i] = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
-            }
-            for(int x=0; x< ancho; x++){
-                for (int y =0; y<alto; y++){
+    /**
+     * Convierte una imagen a escala de grises
+     * con el número de niveles especificado.
+     */
+    public static BufferedImage convertir(
+            BufferedImage original,
+            int niveles
+    ) {
 
-                    int pixel = imagen.getRGB(x,y);
+        if (original == null) {
+            throw new IllegalArgumentException(
+                    "La imagen no puede ser null."
+            );
+        }
 
-                    int r = (pixel >> 16)&mascara;
-                    int g = (pixel >> 8) & mascara;
-                    int b = pixel & mascara;
+        if (niveles < 2 || niveles > 256) {
+            throw new IllegalArgumentException(
+                    "Los niveles deben estar entre 2 y 256."
+            );
+        }
 
-                    //Aqui se calcula el gris original
-                    int gris = (r+g+b)/3;
+        int ancho = original.getWidth();
+        int alto = original.getHeight();
 
-                    for(int i=0; i<niveles.length; i++){
+        BufferedImage resultado = new BufferedImage(
+                ancho,
+                alto,
+                BufferedImage.TYPE_INT_RGB
+        );
 
-                        int n = niveles[i];
+        for (int y = 0; y < alto; y++) {
 
-                        int nivel = (gris* (n-1) + 127)/255;
+            for (int x = 0; x < ancho; x++) {
 
-                        int grisActual= (nivel * 255 + (n-1)/2) / (n-1);
+                int pixel = original.getRGB(x, y);
 
-                        int pixel2 = (grisActual << 16) | (grisActual << 8) | grisActual;
+                int r = (pixel >> 16) & 0xFF;
+                int g = (pixel >> 8) & 0xFF;
+                int b = pixel & 0xFF;
 
-                        imagenes[i].setRGB(x,y, pixel2);
-                    }
-                }
-            }
+                // Se conserva el promedio simple del ejercicio.
+                int gris = (r + g + b) / 3;
 
-            for(int i = 0; i< niveles.length; i++){
-                String nombre = "src/main/resources/img/gris_" + niveles[i] + ".png";
+                // Cuantización de niveles.
+                int nivel = (gris * (niveles - 1) + 127) / 255;
 
-                File imagenSalida = new File(nombre);
+                int grisActual =
+                        (nivel * 255 + (niveles - 1) / 2)
+                                / (niveles - 1);
 
-                boolean guardada = ImageIO.write(
-                        imagenes[i],
-                        "png",
-                        imagenSalida
+                int pixelGris =
+                        ImagenUtils.empaquetarRGB(
+                                grisActual,
+                                grisActual,
+                                grisActual
+                        );
+
+                resultado.setRGB(
+                        x,
+                        y,
+                        pixelGris
                 );
             }
-            System.out.println("Imagenes creadas con exito");
+        }
 
-        }catch(Exception e) {
-            System.out.println("Error al clonar la imagen "+ e.getMessage());
+        return resultado;
+    }
+
+    public static void generarTodas()
+            throws IOException {
+
+        BufferedImage original =
+                ImagenUtils.cargarImagen(RUTA_ENTRADA);
+
+        for (int nivel : NIVELES) {
+
+            BufferedImage resultado =
+                    convertir(original, nivel);
+
+            String ruta =
+                    "src/main/resources/img/gris_"
+                            + nivel
+                            + ".png";
+
+            ImagenUtils.guardarImagen(
+                    resultado,
+                    ruta
+            );
+
+            System.out.println(
+                    "Imagen generada: " + ruta
+            );
+        }
+    }
+
+    public static void main(String[] args) {
+
+        try {
+
+            generarTodas();
+
+            System.out.println(
+                    "Imágenes en escala de grises generadas."
+            );
+
+        } catch (IOException e) {
+
+            System.err.println(
+                    "Error al generar escala de grises: "
+                            + e.getMessage()
+            );
         }
     }
 }
